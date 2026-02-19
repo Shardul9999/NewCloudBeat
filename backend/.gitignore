@@ -1,0 +1,3 @@
+echo "backend/venv/" >> .gitignore
+echo "backend/__pycache__/" >> .gitignore
+echo "backend/.env" >> .gitignore
