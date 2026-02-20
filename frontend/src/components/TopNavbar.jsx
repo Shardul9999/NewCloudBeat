@@ -17,21 +17,21 @@ export default function TopNavbar({ theme, toggleTheme }) {
 
             {/* Center: Navigation Links */}
             <nav className="hidden md:flex items-center gap-12">
-                {['NEW', 'FAVOURITE', 'LIBRARY', 'ARTIST'].map((item) => {
-                    let path = '#'
-                    if (item === 'LIBRARY') path = '/library'
-                    if (item === 'FAVOURITE') path = '/library?filter=favorites'
-
-                    return (
-                        <Link
-                            key={item}
-                            to={path}
-                            className="text-slate-500 hover:text-slate-900 text-xs font-bold tracking-widest transition-colors dark:text-gray-400 dark:hover:text-white dark:text-opacity-80"
-                        >
-                            {item}
-                        </Link>
-                    )
-                })}
+                <Link to="/" className="text-slate-500 hover:text-slate-900 text-xs font-bold tracking-widest transition-colors dark:text-gray-400 dark:hover:text-white dark:text-opacity-80">
+                    HOME
+                </Link>
+                <Link to="/#new" className="text-slate-500 hover:text-slate-900 text-xs font-bold tracking-widest transition-colors dark:text-gray-400 dark:hover:text-white dark:text-opacity-80">
+                    NEW
+                </Link>
+                <Link to="/library?filter=favorites" className="text-slate-500 hover:text-slate-900 text-xs font-bold tracking-widest transition-colors dark:text-gray-400 dark:hover:text-white dark:text-opacity-80">
+                    FAVOURITE
+                </Link>
+                <Link to="/library" className="text-slate-500 hover:text-slate-900 text-xs font-bold tracking-widest transition-colors dark:text-gray-400 dark:hover:text-white dark:text-opacity-80">
+                    LIBRARY
+                </Link>
+                <Link to="/#artist" className="text-slate-500 hover:text-slate-900 text-xs font-bold tracking-widest transition-colors dark:text-gray-400 dark:hover:text-white dark:text-opacity-80">
+                    ARTIST
+                </Link>
             </nav>
 
             {/* Right: Search, Theme Toggle, Profile */}

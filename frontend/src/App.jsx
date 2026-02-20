@@ -4,6 +4,8 @@ import Library from './pages/Library'
 import Layout from './components/Layout'
 import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
+import { usePlayerStore } from './lib/store'
+import HomePage from './pages/HomePage'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -53,12 +55,48 @@ function App() {
     }
   }
 
+  // 3. Fetch Songs for Global State
+  const { songs, setSongs, setPlaylist, playSong } = usePlayerStore()
+
+  useEffect(() => {
+    if (session) {
+      const fetchSongs = async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+
+        if (token) {
+          try {
+            const response = await fetch('http://localhost:5000/api/songs/', { // Using fetch directly or axios
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await response.json()
+            setSongs(data)
+            // Don't auto-set playlist on load unless desired, but user might want to see something?
+            // Actually, Library page handles its own list. HomePage needs "songs".
+
+            // Let's set the initial playlist so the player isn't empty?
+            // Or just let individual pages handle "play" events which set playlist.
+          } catch (error) {
+            console.error('Error fetching songs:', error)
+          }
+        }
+      }
+      fetchSongs()
+    }
+  }, [session])
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+      <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-amber-400">
         Loading...
       </div>
     )
+  }
+
+  // Handler for playing a song from Home Page
+  const handlePlay = (song) => {
+    setPlaylist(songs) // Set full list when playing from Home
+    playSong(song)
   }
 
   return (
@@ -66,8 +104,8 @@ function App() {
       <Routes>
         <Route path="/login" element={!session ? <Login /> : <Navigate to="/" replace />} />
         <Route path="/" element={session ? <Layout theme={theme} toggleTheme={toggleTheme} /> : <Navigate to="/login" replace />}>
-          <Route index element={<Navigate to="/library" replace />} />
-          <Route path="library" element={<Library session={session} />} />
+          <Route index element={<HomePage songs={songs} onPlay={handlePlay} />} />
+          <Route path="library" element={<Library session={session} songs={songs} />} />
         </Route>
       </Routes>
     </Router>

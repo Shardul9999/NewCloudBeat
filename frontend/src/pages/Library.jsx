@@ -7,42 +7,24 @@ import HeroSection from '../components/HeroSection'
 import { usePlayerStore } from '../lib/store'
 import { useSearchParams } from 'react-router-dom'
 
-export default function Library({ session }) {
-    const [songs, setSongs] = useState([])
-    const [loading, setLoading] = useState(true)
+export default function Library({ session, songs = [] }) { // Accept songs from props
+    // const [songs, setSongs] = useState([]) // Removed internal state
+    const [loading, setLoading] = useState(false) // Loading handled by parent mostly, but can keep for local filtering/processing if needed
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [searchParams] = useSearchParams()
 
     // Get Search Query from Store
     const { setPlaylist, playSong, searchQuery } = usePlayerStore()
 
-    const fetchSongs = async () => {
-        try {
-            setLoading(true)
-            const token = session?.access_token
-            if (!token) return
+    // Removed internal fetchSongs logic
 
-            const response = await axios.get('/api/songs/', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-            setSongs(response.data)
-            // We set the full playlist initially, but play action might use filtered list? 
-            // Usually we want the playlist to match what's visible.
-            setPlaylist(response.data)
-        } catch (error) {
-            console.error("Error fetching songs:", error)
-        } finally {
-            setLoading(false)
-        }
-    }
+    // Logic to refresh songs if upload happens? 
+    // If we upload, we need to tell App.jsx to re-fetch.
+    // Ideally, we pass an `onUploadSuccess` callback prop.
 
-    useEffect(() => {
-        if (session) {
-            fetchSongs()
-        }
-    }, [session])
+    // For now, let's assume the parent handles data, but we need a way to trigger refresh.
+    // Let's add onRefresh prop.
+
 
     // Filtering Logic
     const showFavoritesOnly = searchParams.get('filter') === 'favorites'
@@ -92,25 +74,24 @@ export default function Library({ session }) {
 
     return (
         <div className="relative min-h-screen">
-            <HeroSection songs={filteredSongs} onPlay={handlePlay} />
 
             <div className="px-8 lg:px-16 mt-4">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-wide transition-colors duration-300">
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-amber-400 tracking-wide transition-colors duration-300">
                         {showFavoritesOnly ? 'Your Favourites' : 'Your Library'}
                     </h2>
                     <button
                         onClick={() => setIsUploadModalOpen(true)}
-                        className="bg-transparent border border-gray-300 dark:border-gray-600 hover:border-gray-900 dark:hover:border-white text-gray-900 dark:text-white rounded-full px-6 py-2 flex items-center gap-2 transition text-sm font-medium"
+                        className="bg-transparent border border-gray-300 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-amber-400 text-gray-900 dark:text-neutral-300 dark:hover:text-amber-400 rounded-full px-6 py-2 flex items-center gap-2 transition text-sm font-medium"
                     >
                         <Plus size={16} />
                         Add Song
                     </button>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl min-h-[400px] border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none transition-colors duration-300">
+                <div className="bg-white dark:bg-neutral-900/50 backdrop-blur-sm p-6 rounded-2xl min-h-[400px] border border-slate-200 dark:border-neutral-800/50 shadow-sm dark:shadow-none transition-colors duration-300">
                     {loading ? (
-                        <div className="text-gray-400 text-center py-10">Loading library...</div>
+                        <div className="text-gray-400 dark:text-neutral-500 text-center py-10">Loading library...</div>
                     ) : filteredSongs.length === 0 ? (
                         <div className="text-center py-20">
                             <p className="text-gray-400 text-xl mb-4">No songs found.</p>
@@ -122,7 +103,7 @@ export default function Library({ session }) {
                         </div>
                     ) : (
                         <div className="flex flex-col">
-                            <div className="grid grid-cols-[50%_35%_1fr] gap-4 px-6 pb-2 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 mb-4 text-xs uppercase tracking-wider font-semibold transition-colors duration-300">
+                            <div className="grid grid-cols-[50%_35%_1fr] gap-4 px-6 pb-2 text-slate-500 dark:text-neutral-400 border-b border-slate-200 dark:border-neutral-800 mb-4 text-xs uppercase tracking-wider font-semibold transition-colors duration-300">
                                 <span>Title</span>
                                 <span className="hidden md:block">Artist</span>
                                 <span className="text-right">Time</span>
@@ -138,7 +119,7 @@ export default function Library({ session }) {
                     <UploadModal
                         isOpen={isUploadModalOpen}
                         onClose={() => setIsUploadModalOpen(false)}
-                        onUploadSuccess={fetchSongs}
+                        onUploadSuccess={() => window.location.reload()} // Simple reload for now to re-fetch in App.jsx, or pass onRefresh prop
                     />
                 )}
             </div>

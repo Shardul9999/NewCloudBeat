@@ -8,12 +8,14 @@ export const usePlayerStore = create((set) => ({
     isShuffle: false,
     isRepeat: false,
     searchQuery: "",
+    songs: [],
 
     setSearchQuery: (query) => set({ searchQuery: query }),
     toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
     toggleRepeat: () => set((state) => ({ isRepeat: !state.isRepeat })),
 
     setPlaylist: (songs) => set({ playlist: songs }),
+    setSongs: (songs) => set({ songs }),
 
     playSong: (song) => set((state) => {
         const index = state.playlist.findIndex((s) => s.id === song.id)
@@ -22,6 +24,7 @@ export const usePlayerStore = create((set) => ({
 
     // To handle updates like Favourite toggle without reloading everything
     updateSong: (updatedSong) => set((state) => ({
+        songs: state.songs.map(s => s.id === updatedSong.id ? updatedSong : s),
         playlist: state.playlist.map(s => s.id === updatedSong.id ? updatedSong : s),
         currentSong: state.currentSong?.id === updatedSong.id ? updatedSong : state.currentSong
     })),

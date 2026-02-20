@@ -6,7 +6,7 @@ import SocialStrip from './SocialStrip'
 
 export default function Layout({ theme, toggleTheme }) {
     return (
-        <div className="flex flex-col h-screen w-full overflow-hidden relative bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+        <div className="flex flex-col h-screen w-full overflow-hidden relative bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-300 transition-colors duration-300">
             {/* Background Overlay for "Concert Feel" - subtle texture or noise could be added here */}
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
 

@@ -117,57 +117,60 @@ export default function Player() {
     const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
     if (!currentSong) return (
-        <div className="h-32 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800/50 p-4 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-colors duration-300">
+        <div className="h-32 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-t border-slate-200 dark:border-neutral-800/50 p-4 flex items-center justify-center text-slate-500 dark:text-neutral-400 transition-colors duration-300">
             Select a song to play
         </div>
     )
 
     return (
-        <div className="h-32 bg-white dark:bg-slate-950/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800/50 px-8 flex items-center justify-between z-50 relative shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-2xl transition-colors duration-300">
+        <div className="h-32 bg-white dark:bg-neutral-950/90 backdrop-blur-md border-t border-slate-200 dark:border-neutral-800/50 px-4 md:px-8 flex items-center justify-between z-50 relative shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-2xl transition-colors duration-300">
+
             {/* Left: Controls */}
-            <div className="flex items-center gap-6 w-1/4">
+            <div className="flex items-center gap-4 lg:gap-6 w-1/4 min-w-[200px]">
                 <button
                     onClick={toggleShuffle}
-                    className={`transition ${isShuffle ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
+                    className={`transition ${isShuffle ? 'text-cyan-600 dark:text-amber-400' : 'text-slate-400 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-amber-400'}`}
                 >
                     <Shuffle size={18} />
                 </button>
+
                 <button
                     onClick={playPrev}
-                    className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"
+                    className="text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-amber-400 transition"
                 >
-                    <SkipBack size={24} fill="currentColor" />
+                    <SkipBack size={22} fill="currentColor" />
                 </button>
 
                 <button
                     onClick={togglePlay}
-                    className="w-14 h-14 rounded-full border-2 border-slate-200 dark:border-slate-600 flex items-center justify-center hover:scale-105 transition hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-900 dark:hover:border-slate-400 text-slate-900 dark:text-white shadow-lg dark:shadow-[0_0_15px_rgba(255,255,255,0.05)] bg-white dark:bg-transparent"
+                    className="w-12 h-12 rounded-full bg-slate-100 dark:bg-amber-400 border border-slate-300 dark:border-transparent flex items-center justify-center hover:scale-105 transition text-slate-900 dark:text-neutral-950 shadow-md"
                 >
                     {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
                 </button>
 
                 <button
                     onClick={playNext}
-                    className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition"
+                    className="text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-amber-400 transition"
                 >
-                    <SkipForward size={24} fill="currentColor" />
+                    <SkipForward size={22} fill="currentColor" />
                 </button>
+
                 <button
                     onClick={toggleRepeat}
-                    className={`transition ${isRepeat ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
+                    className={`transition ${isRepeat ? 'text-cyan-600 dark:text-amber-400' : 'text-slate-400 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-amber-400'}`}
                 >
                     <Repeat size={18} />
                 </button>
             </div>
 
-            {/* Center: Waveform Visualization */}
-            <div className="flex flex-col items-center w-2/4 px-12 relative group">
-                <div className="w-full flex items-end justify-between h-12 gap-[2px] mb-2 cursor-pointer relative"
+            {/* Center: Waveform / Progress */}
+            <div className="flex flex-col items-center w-2/4 px-4 relative group justify-center gap-1">
+                <div className="w-full flex items-end justify-between h-20 gap-[2.5px] cursor-pointer relative"
                     onClick={(e) => {
                         const bounds = e.currentTarget.getBoundingClientRect();
                         const x = e.clientX - bounds.left;
                         const width = bounds.width;
-                        const percent = Math.min(Math.max(0, x / width), 1); // Clamp between 0 and 1
+                        const percent = Math.min(Math.max(0, x / width), 1);
 
                         if (audioRef.current && duration) {
                             const newTime = percent * duration;
@@ -177,59 +180,50 @@ export default function Player() {
                     }}
                 >
                     {waveformBars.map((bar, index) => {
-                        // Create a pattern that looks like a waveform
-                        const height = Math.max(20, Math.sin(index * 0.2) * 40 + Math.random() * 30 + 10);
-                        // Determine if this bar is "active" (played)
+                        const height = Math.max(15, Math.sin(index * 0.2) * 30 + Math.random() * 20 + 5);
                         const barLimit = (index / waveformBars.length) * 100;
                         const isPlayed = progressPercent > barLimit;
 
                         return (
                             <div
                                 key={index}
-                                className={`flex-1 rounded-full transition-all duration-300 ease-linear ${isPlayed ? 'bg-cyan-600 dark:bg-cyan-400 shadow-[0_0_5px_rgba(34,211,238,0.5)]' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                className={`flex-1 rounded-full transition-all duration-300 ease-linear ${isPlayed ? 'bg-cyan-500 dark:bg-amber-400 opacity-90' : 'bg-slate-300 dark:bg-neutral-800'}`}
                                 style={{ height: `${height}%` }}
                             ></div>
                         )
                     })}
-
-                    {/* Hover Time Indicator (Optional enhancement) */}
                 </div>
 
-                <div className="w-full flex justify-between text-xs font-medium text-cyan-700 dark:text-cyan-200 tracking-wider transition-colors duration-300">
+                {/* Time Display */}
+                <div className="w-full flex justify-between text-[10px] font-medium text-slate-400 dark:text-neutral-500 tracking-wider">
                     <span>{formatTime(currentTime)}</span>
-                    <span className="text-slate-500 dark:text-slate-400">{formatTime(duration)}</span>
+                    <span>{formatTime(duration)}</span>
                 </div>
             </div>
 
-            {/* Right: Song Info */}
-            <div className="flex items-center justify-end gap-6 w-1/4">
-                <div className="text-right hidden xl:block">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1 transition-colors duration-300">DJ MAGAZINE</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-500 transition-colors duration-300">Global Top 50</p>
-                </div>
-
-                <div className="flex items-center gap-4 bg-slate-100 dark:bg-slate-800/50 p-2 pr-6 rounded-xl border border-slate-200 dark:border-slate-700/50 resize-none transition-colors duration-300">
-                    <div className="w-12 h-12 rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden relative shadow-lg">
-                        {/* Use real image if available later */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 to-purple-900 opacity-50 dark:opacity-100"></div>
+            {/* Right: Song Info & Volume */}
+            <div className="flex items-center justify-end gap-6 w-1/4 min-w-[250px]">
+                <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-lg bg-slate-200 dark:bg-neutral-900 overflow-hidden relative shadow-md flex-shrink-0">
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 to-purple-900 opacity-50 dark:from-amber-900 dark:to-neutral-900 dark:opacity-40"></div>
                         <img
                             src={`https://i.pravatar.cc/150?u=${currentSong.title}`}
                             alt="Album Art"
                             className="w-full h-full object-cover opacity-80"
                         />
                     </div>
-                    <div className="flex flex-col">
-                        <span className="text-slate-900 dark:text-white font-bold text-sm truncate max-w-[120px] transition-colors duration-300">{currentSong.title}</span>
-                        <span className="text-slate-600 dark:text-slate-400 text-xs truncate max-w-[120px] transition-colors duration-300">{currentSong.artist}</span>
+                    <div className="flex flex-col overflow-hidden text-right">
+                        <span className="text-slate-900 dark:text-amber-400 font-bold text-sm truncate max-w-[150px] transition-colors duration-300">{currentSong.title}</span>
+                        <span className="text-slate-600 dark:text-neutral-400 text-xs truncate max-w-[150px] transition-colors duration-300">{currentSong.artist}</span>
                     </div>
-                    <button onClick={handleToggleFavourite} className="ml-2 hover:scale-110 transition">
-                        <Heart size={18} className={`${currentSong.is_favourite ? 'fill-pink-500 text-pink-500' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'}`} />
-                    </button>
                 </div>
 
-                {/* Volume Mini - could be a popover or integrated, keeping simple for now */}
-                <div className="hidden lg:flex items-center gap-2 group">
-                    <Volume2 size={16} className="text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition" />
+                <button onClick={handleToggleFavourite} className="hover:scale-110 transition flex-shrink-0">
+                    <Heart size={20} className={`${currentSong.is_favourite ? 'fill-pink-500 text-pink-500' : 'text-slate-400 hover:text-slate-900 dark:hover:text-amber-400'}`} />
+                </button>
+
+                <div className="hidden lg:flex items-center gap-2 group ml-2">
+                    <Volume2 size={18} className="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-amber-400 transition" />
                     <input
                         type="range"
                         min="0"
@@ -237,7 +231,7 @@ export default function Player() {
                         step="0.01"
                         value={volume}
                         onChange={(e) => setVolume(parseFloat(e.target.value))}
-                        className="w-20 h-1 bg-slate-300 dark:bg-slate-700 rounded-lg accent-cyan-600 dark:accent-cyan-400 cursor-pointer"
+                        className="w-20 h-1.5 bg-slate-300 dark:bg-neutral-700 rounded-lg accent-cyan-600 dark:accent-amber-400 cursor-pointer"
                     />
                 </div>
             </div>
