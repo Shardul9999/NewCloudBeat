@@ -1,8 +1,9 @@
 import { Search, Sun, Moon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { usePlayerStore } from '../lib/store'
+import { supabase } from '../lib/supabase'
 
-export default function TopNavbar({ theme, toggleTheme }) {
+export default function TopNavbar({ theme, toggleTheme, user }) {
     const { searchQuery, setSearchQuery } = usePlayerStore()
 
     return (
@@ -55,10 +56,24 @@ export default function TopNavbar({ theme, toggleTheme }) {
                     {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
 
-                <div className="relative w-10 h-10 rounded-full bg-gray-600 overflow-hidden border-2 border-transparent hover:border-white transition-all cursor-pointer">
-                    <img src="https://i.pravatar.cc/150?img=32" alt="Profile" className="w-full h-full object-cover" />
-                    <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#1e1e2e]"></div>
-                </div>
+                {!user ? (
+                    <Link to="/login" className="bg-slate-900 dark:bg-amber-400 text-white dark:text-neutral-950 font-bold px-4 py-2 rounded-full hover:bg-slate-800 dark:hover:bg-amber-500 transition shadow-md">
+                        Log In
+                    </Link>
+                ) : (
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-10 h-10 rounded-full bg-gray-600 overflow-hidden border-2 border-transparent hover:border-amber-400 transition-all cursor-pointer shadow-sm">
+                            <img src={`https://ui-avatars.com/api/?name=${user.email}&background=random`} alt="Profile" className="w-full h-full object-cover" />
+                            <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#1e1e2e]"></div>
+                        </div>
+                        <button
+                            onClick={() => supabase.auth.signOut()}
+                            className="text-sm font-bold text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-amber-400 transition-colors"
+                        >
+                            Log Out
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     )

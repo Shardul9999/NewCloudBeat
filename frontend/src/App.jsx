@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './pages/Login'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import AuthPage from './pages/AuthPage'
+import UpdatePassword from './pages/UpdatePassword'
 import Library from './pages/Library'
 import Layout from './components/Layout'
 import { useEffect, useState } from 'react'
@@ -7,10 +8,12 @@ import { supabase } from './lib/supabase'
 import { usePlayerStore } from './lib/store'
 import HomePage from './pages/HomePage'
 
-function App() {
+function AppRoutes() {
   const [session, setSession] = useState(null)
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [theme, setTheme] = useState('dark')
+  const navigate = useNavigate()
 
   useEffect(() => {
     // 1. Check localStorage for Theme
@@ -28,6 +31,7 @@ function App() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
+      setUser(session?.user || null)
       if (!isHash || session) {
         setLoading(false)
       }
@@ -35,13 +39,18 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
+      setUser(session?.user || null)
       setLoading(false)
+
+      if (event === 'PASSWORD_RECOVERY') {
+        navigate('/update-password')
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [navigate])
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark'
@@ -100,16 +109,21 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={!session ? <Login /> : <Navigate to="/" replace />} />
-        <Route path="/" element={session ? <Layout theme={theme} toggleTheme={toggleTheme} /> : <Navigate to="/login" replace />}>
-          <Route index element={<HomePage songs={songs} onPlay={handlePlay} />} />
-          <Route path="library" element={<Library session={session} songs={songs} />} />
-        </Route>
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/login" element={!session ? <AuthPage /> : <Navigate to="/" replace />} />
+      <Route path="/update-password" element={session ? <UpdatePassword /> : <Navigate to="/login" replace />} />
+      <Route path="/" element={session ? <Layout theme={theme} toggleTheme={toggleTheme} user={user} /> : <Navigate to="/login" replace />}>
+        <Route index element={<HomePage songs={songs} onPlay={handlePlay} />} />
+        <Route path="library" element={<Library session={session} songs={songs} />} />
+      </Route>
+    </Routes>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <Router>
+      <AppRoutes />
+    </Router>
+  )
+}
