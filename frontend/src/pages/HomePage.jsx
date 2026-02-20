@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import HeroSection from '../components/HeroSection'
 
-export default function HomePage({ songs, onPlay }) {
+export default function HomePage({ songs, onPlay, onToggleFavorite }) {
     const carouselRef = useRef(null)
 
     const scrollLeft = () => {
@@ -21,6 +21,7 @@ export default function HomePage({ songs, onPlay }) {
             <HeroSection
                 songs={songs}
                 onPlay={onPlay}
+                onToggleFavorite={onToggleFavorite}
                 carouselRef={carouselRef}
                 onScrollLeft={scrollLeft}
                 onScrollRight={scrollRight}

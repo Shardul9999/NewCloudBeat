@@ -11,11 +11,8 @@ def list_songs():
     """Lists songs from Supabase."""
     try:
         supabase = DBService.get_client()
-        # Ensure we filter by user to respect privacy, although RLS should handle it.
-        # But for now, let's just list everything or filter by user_id if we have it in table.
-        # The schema definition has user_id, so let's use it.
-        # ORDER BY created_at DESC to show newest first? Or just default.
-        response = supabase.table('songs').select('*').eq('user_id', g.user_id).order('created_at', desc=True).execute()
+        # Fetch ALL songs for the global catalog
+        response = supabase.table('songs').select('*').order('created_at', desc=True).execute()
         return jsonify(response.data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -7,14 +7,14 @@ import HeroSection from '../components/HeroSection'
 import { usePlayerStore } from '../lib/store'
 import { useSearchParams } from 'react-router-dom'
 
-export default function Library({ session, songs = [] }) { // Accept songs from props
+export default function Library({ session, songs = [], isAdmin, onToggleFavorite }) { // Accept songs from props
     // const [songs, setSongs] = useState([]) // Removed internal state
     const [loading, setLoading] = useState(false) // Loading handled by parent mostly, but can keep for local filtering/processing if needed
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [searchParams] = useSearchParams()
 
     // Get Search Query from Store
-    const { setPlaylist, playSong, searchQuery } = usePlayerStore()
+    const { setPlaylist, playSong, searchQuery, favoriteIds } = usePlayerStore()
 
     // Removed internal fetchSongs logic
 
@@ -31,7 +31,7 @@ export default function Library({ session, songs = [] }) { // Accept songs from 
 
     const filteredSongs = songs.filter(song => {
         // 1. Filter by Favourite
-        if (showFavoritesOnly && !song.is_favourite) return false
+        if (showFavoritesOnly && !favoriteIds.includes(song.id)) return false
 
         // 2. Filter by Search
         if (searchQuery) {
@@ -80,13 +80,15 @@ export default function Library({ session, songs = [] }) { // Accept songs from 
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-amber-400 tracking-wide transition-colors duration-300">
                         {showFavoritesOnly ? 'Your Favourites' : 'Your Library'}
                     </h2>
-                    <button
-                        onClick={() => setIsUploadModalOpen(true)}
-                        className="bg-transparent border border-gray-300 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-amber-400 text-gray-900 dark:text-neutral-300 dark:hover:text-amber-400 rounded-full px-6 py-2 flex items-center gap-2 transition text-sm font-medium"
-                    >
-                        <Plus size={16} />
-                        Add Song
-                    </button>
+                    {isAdmin && (
+                        <button
+                            onClick={() => setIsUploadModalOpen(true)}
+                            className="bg-transparent border border-gray-300 dark:border-neutral-700 hover:border-gray-900 dark:hover:border-amber-400 text-gray-900 dark:text-neutral-300 dark:hover:text-amber-400 rounded-full px-6 py-2 flex items-center gap-2 transition text-sm font-medium"
+                        >
+                            <Plus size={16} />
+                            Add Song
+                        </button>
+                    )}
                 </div>
 
                 <div className="bg-white dark:bg-neutral-900/50 backdrop-blur-sm p-6 rounded-2xl min-h-[400px] border border-slate-200 dark:border-neutral-800/50 shadow-sm dark:shadow-none transition-colors duration-300">
@@ -109,7 +111,7 @@ export default function Library({ session, songs = [] }) { // Accept songs from 
                                 <span className="text-right">Time</span>
                             </div>
                             {filteredSongs.map((song, i) => (
-                                <SongRow key={song.id} song={song} index={i} onPlay={handlePlay} />
+                                <SongRow key={song.id} song={song} index={i} onPlay={handlePlay} onToggleFavorite={onToggleFavorite} isFavorite={favoriteIds.includes(song.id)} />
                             ))}
                         </div>
                     )}

@@ -9,6 +9,7 @@ export const usePlayerStore = create((set) => ({
     isRepeat: false,
     searchQuery: "",
     songs: [],
+    favoriteIds: [],
 
     setSearchQuery: (query) => set({ searchQuery: query }),
     toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
@@ -16,6 +17,16 @@ export const usePlayerStore = create((set) => ({
 
     setPlaylist: (songs) => set({ playlist: songs }),
     setSongs: (songs) => set({ songs }),
+    setFavoriteIds: (ids) => set({ favoriteIds: ids }),
+
+    toggleFavoriteId: (songId) => set((state) => {
+        const isFav = state.favoriteIds.includes(songId);
+        return {
+            favoriteIds: isFav
+                ? state.favoriteIds.filter(id => id !== songId)
+                : [...state.favoriteIds, songId]
+        };
+    }),
 
     playSong: (song) => set((state) => {
         const index = state.playlist.findIndex((s) => s.id === song.id)
@@ -37,18 +48,8 @@ export const usePlayerStore = create((set) => ({
         if (playlist.length === 0) return {}
 
         // Repeat Logic: handled by Component usually, but if called, we just keep current.
-        // Wait, if "Next" button is clicked, we usually want to skip even if Repeat is on?
-        // User logic: "if isRepeat is true, loop the current track". 
-        // This implies auto-progression loops. Next button forces next? 
-        // Let's assume Next button forces next, but "onEnded" calls playNext.
-        // If we want to strictly follow "loop current track", then playNext should just replay current IF it was an auto-trigger. 
-        // But we can't distinguish auto vs manual here easily without extra state.
-        // Let's implement: Repeat = Loop Single Track (so next -> same track).
-
         if (isRepeat) {
-            return { isPlaying: true } // Re-trigger play?
-            // Actually, to force re-render/replay, we might need to do something.
-            // But if we just return, the effect in Player won't fire if ID splits.
+            return { isPlaying: true }
         }
 
         if (isShuffle) {
@@ -60,28 +61,28 @@ export const usePlayerStore = create((set) => ({
             }
         }
 
-        if (currentIndex < playlist.length - 1) {
-            const nextIndex = currentIndex + 1
-            return {
-                currentSong: playlist[nextIndex],
-                currentIndex: nextIndex,
-                isPlaying: true
-            }
-        }
+        // Wrap around to start if at the end of the playlist
+        const nextIndex = (currentIndex + 1) % playlist.length
 
-        // End of playlist
-        return { isPlaying: false }
+        return {
+            currentSong: playlist[nextIndex],
+            currentIndex: nextIndex,
+            isPlaying: true
+        }
     }),
 
     playPrev: () => set((state) => {
-        if (state.currentIndex > 0) {
-            const prevIndex = state.currentIndex - 1
-            return {
-                currentSong: state.playlist[prevIndex],
-                currentIndex: prevIndex,
-                isPlaying: true
-            }
+        const { playlist, currentIndex } = state
+
+        if (playlist.length === 0) return {}
+
+        // Wrap around to the end if at the start of the playlist
+        const prevIndex = (currentIndex - 1 + playlist.length) % playlist.length
+
+        return {
+            currentSong: playlist[prevIndex],
+            currentIndex: prevIndex,
+            isPlaying: true
         }
-        return {}
     }),
 }))

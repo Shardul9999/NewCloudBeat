@@ -15,6 +15,8 @@ function AppRoutes() {
   const [theme, setTheme] = useState('dark')
   const navigate = useNavigate()
 
+  const isAdmin = user?.email === 'shardulhingane16@gmail.com'
+
   useEffect(() => {
     // 1. Check localStorage for Theme
     const savedTheme = localStorage.getItem('theme') || 'dark'
@@ -65,34 +67,42 @@ function AppRoutes() {
   }
 
   // 3. Fetch Songs for Global State
-  const { songs, setSongs, setPlaylist, playSong } = usePlayerStore()
+  const { songs, setSongs, setPlaylist, playSong, favoriteIds, setFavoriteIds, toggleFavoriteId } = usePlayerStore()
 
   useEffect(() => {
     if (session) {
-      const fetchSongs = async () => {
+      const fetchInitialData = async () => {
         const { data: { session } } = await supabase.auth.getSession()
         const token = session?.access_token
 
         if (token) {
           try {
-            const response = await fetch('http://localhost:5000/api/songs/', { // Using fetch directly or axios
+            // Fetch Global Songs
+            const songsResponse = await fetch('http://localhost:5000/api/songs/', {
               headers: { Authorization: `Bearer ${token}` }
             })
-            const data = await response.json()
-            setSongs(data)
-            // Don't auto-set playlist on load unless desired, but user might want to see something?
-            // Actually, Library page handles its own list. HomePage needs "songs".
+            const songsData = await songsResponse.json()
+            if (!songsData.error) {
+              setSongs(songsData)
+            }
 
-            // Let's set the initial playlist so the player isn't empty?
-            // Or just let individual pages handle "play" events which set playlist.
+            // Fetch User Favorites directly from Supabase
+            const { data: favData, error: favError } = await supabase
+              .from('user_favorites')
+              .select('song_id')
+              .eq('user_id', session.user.id)
+
+            if (favData && !favError) {
+              setFavoriteIds(favData.map(f => f.song_id))
+            }
           } catch (error) {
-            console.error('Error fetching songs:', error)
+            console.error('Error fetching initial data:', error)
           }
         }
       }
-      fetchSongs()
+      fetchInitialData()
     }
-  }, [session])
+  }, [session, setSongs, setFavoriteIds])
 
   if (loading) {
     return (
@@ -108,13 +118,43 @@ function AppRoutes() {
     playSong(song)
   }
 
+  // Global handler for toggling favorites
+  const handleToggleFavorite = async (songId) => {
+    if (!user) return
+
+    const isFav = favoriteIds.includes(songId)
+
+    // Optimsitic UI update
+    toggleFavoriteId(songId)
+
+    try {
+      if (isFav) {
+        // Remove from favorites
+        await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('song_id', songId)
+      } else {
+        // Add to favorites
+        await supabase
+          .from('user_favorites')
+          .insert({ user_id: user.id, song_id: songId })
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      // Revert UI on failure
+      toggleFavoriteId(songId)
+    }
+  }
+
   return (
     <Routes>
       <Route path="/login" element={!session ? <AuthPage /> : <Navigate to="/" replace />} />
       <Route path="/update-password" element={session ? <UpdatePassword /> : <Navigate to="/login" replace />} />
       <Route path="/" element={session ? <Layout theme={theme} toggleTheme={toggleTheme} user={user} /> : <Navigate to="/login" replace />}>
-        <Route index element={<HomePage songs={songs} onPlay={handlePlay} />} />
-        <Route path="library" element={<Library session={session} songs={songs} />} />
+        <Route index element={<HomePage songs={songs} onPlay={handlePlay} onToggleFavorite={handleToggleFavorite} />} />
+        <Route path="library" element={<Library session={session} songs={songs} isAdmin={isAdmin} onToggleFavorite={handleToggleFavorite} />} />
       </Route>
     </Routes>
   )

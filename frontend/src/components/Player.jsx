@@ -16,7 +16,9 @@ export default function Player() {
         isRepeat,
         toggleShuffle,
         toggleRepeat,
-        updateSong
+        updateSong,
+        favoriteIds,
+        toggleFavoriteId
     } = usePlayerStore()
 
     const [songUrl, setSongUrl] = useState(null)
@@ -91,21 +93,33 @@ export default function Player() {
         e.stopPropagation()
         if (!currentSong) return
 
+        const songId = currentSong.id
+        const isFav = favoriteIds.includes(songId)
+
         // Optimistic update
-        const newStatus = !currentSong.is_favourite
-        updateSong({ ...currentSong, is_favourite: newStatus })
+        toggleFavoriteId(songId)
 
         try {
             const { data: { session } } = await supabase.auth.getSession()
             if (!session) return
 
-            await axios.post(`/api/songs/${currentSong.id}/favourite`, {}, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            })
+            if (isFav) {
+                // Remove
+                await supabase
+                    .from('user_favorites')
+                    .delete()
+                    .eq('user_id', session.user.id)
+                    .eq('song_id', songId)
+            } else {
+                // Add
+                await supabase
+                    .from('user_favorites')
+                    .insert({ user_id: session.user.id, song_id: songId })
+            }
         } catch (error) {
             console.error("Failed to toggle favourite", error)
             // Revert on error
-            updateSong({ ...currentSong, is_favourite: !newStatus })
+            toggleFavoriteId(songId)
         }
     }
 
@@ -195,7 +209,7 @@ export default function Player() {
                 </div>
 
                 {/* Time Display */}
-                <div className="w-full flex justify-between text-[10px] font-medium text-slate-400 dark:text-neutral-500 tracking-wider">
+                <div className="w-full flex justify-between text-sm font-medium text-slate-500 dark:text-neutral-300 tracking-wider">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
                 </div>
@@ -219,7 +233,7 @@ export default function Player() {
                 </div>
 
                 <button onClick={handleToggleFavourite} className="hover:scale-110 transition flex-shrink-0">
-                    <Heart size={20} className={`${currentSong.is_favourite ? 'fill-pink-500 text-pink-500' : 'text-slate-400 hover:text-slate-900 dark:hover:text-amber-400'}`} />
+                    <Heart size={20} className={`${favoriteIds.includes(currentSong.id) ? 'fill-pink-500 text-pink-500' : 'text-slate-400 hover:text-slate-900 dark:hover:text-amber-400'}`} />
                 </button>
 
                 <div className="hidden lg:flex items-center gap-2 group ml-2">
