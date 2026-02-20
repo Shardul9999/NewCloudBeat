@@ -14,42 +14,151 @@ def list_songs():
         # Ensure we filter by user to respect privacy, although RLS should handle it.
         # But for now, let's just list everything or filter by user_id if we have it in table.
         # The schema definition has user_id, so let's use it.
-        response = supabase.table('songs').select('*').eq('user_id', g.user_id).execute()
+        # ORDER BY created_at DESC to show newest first? Or just default.
+        response = supabase.table('songs').select('*').eq('user_id', g.user_id).order('created_at', desc=True).execute()
         return jsonify(response.data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@songs_bp.route('/<song_id>/favourite', methods=['POST'])
+@require_auth
+def toggle_favourite(song_id):
+    """Toggles the is_favourite status of a song."""
+    try:
+        supabase = DBService.get_client()
+        
+        # 1. Get current status
+        res = supabase.table('songs').select('is_favourite').eq('id', song_id).eq('user_id', g.user_id).execute()
+        
+        if not res.data:
+            return jsonify({"error": "Song not found"}), 404
+            
+        current_status = res.data[0].get('is_favourite', False)
+        new_status = not current_status
+        
+        # 2. Update status
+        update_res = supabase.table('songs').update({'is_favourite': new_status}).eq('id', song_id).eq('user_id', g.user_id).execute()
+        
+        if update_res.data:
+            return jsonify(update_res.data[0])
+        else:
+            return jsonify({"error": "Failed to update"}), 500
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @songs_bp.route('/', methods=['POST'])
 @require_auth
 def add_song():
-    """Adds a song metadata after uploading to Storage."""
-    data = request.json
-    # Expected: title, artist, album, storage_path, duration, mime_type
-    
-    required_fields = ['title', 'storage_path']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"Missing field: {field}"}), 400
-            
+    """Adds a song: Uploads to Supabase via Backend, extracts duration, saves metadata."""
     try:
-        supabase = DBService.get_client()
+        if 'file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+            
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+
+        # Form Data
+        title = request.form.get('title') or file.filename
+        artist = request.form.get('artist') or "Unknown Artist"
+        album = request.form.get('album') or "Unknown Album"
         
+        # 1. Save to Temp File
+        import os
+        from werkzeug.utils import secure_filename
+        
+        filename = secure_filename(file.filename)
+        # Unique ID for storage path
+        storage_filename = f"{g.user_id}/{filename}"
+        
+        # Ensure temp dir exists
+        temp_dir = '/tmp'
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+            
+        temp_path = os.path.join(temp_dir, filename)
+        file.save(temp_path)
+        print(f"Saved temp file to {temp_path}")
+        
+        # 2. Extract Duration
+        duration_formatted = "0:00"
+        try:
+            from mutagen.mp3 import MP3
+            
+            # Read from valid file path
+            audio = MP3(temp_path)
+            length = audio.info.length
+            
+            minutes = int(length // 60)
+            seconds = int(length % 60)
+            duration_formatted = f"{minutes}:{seconds:02d}"
+            print(f"Extracted duration: {duration_formatted}")
+            
+        except Exception as e:
+            print(f"Mutagen error: {e}")
+            # Non-fatal, continue with 0:00
+            
+        # 3. Upload to Supabase Storage
+        # Authenticate with the user's token for RLS
+        token = request.headers.get('Authorization').split(' ')[1]
+        from supabase import create_client, ClientOptions
+        from backend.config import Config
+        
+        client_options = ClientOptions(headers={'Authorization': f'Bearer {token}'})
+        supabase = create_client(Config.SUPABASE_URL, Config.SUPABASE_KEY, options=client_options)
+
+        try:
+            with open(temp_path, 'rb') as f:
+                # Read file content
+                file_content = f.read()
+                
+            # Upload (overwrite if exists or handle naming collisions? Supabase usually errors on collision without upsert)
+            # Use 'upsert': 'true' if needed, or unique names. Timestamps suggested.
+            import time
+            timestamp = int(time.time())
+            final_storage_path = f"{g.user_id}/{timestamp}_{filename}"
+            
+            # The python upload method takes the path and the file body (bytes)
+            # file_options = {"content-type": file.mimetype} # Optional
+            
+            res = supabase.storage.from_('music').upload(
+                path=final_storage_path,
+                file=file_content,
+                file_options={"content-type": file.mimetype}
+            )
+            print(f"Uploaded to Supabase: {final_storage_path}")
+            
+        except Exception as e:
+            # Clean up temp file before returning error
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            raise e
+
+        # 4. Save Metadata to DB
         song_data = {
-            "title": data.get('title'),
-            "artist": data.get('artist'),
-            "album": data.get('album'),
-            "drive_id": data.get('storage_path'), # Reusing drive_id column for storage_path or Rename it? Let's keep it simple for now, but better rename.
-            # Actually, let's refrain from renaming config/schema right now to avoid migration steps, 
-            # I will use 'drive_id' to store 'storage_path' for now.
-            "duration": data.get('duration'),
-            "mime_type": data.get('mime_type'),
-            "user_id": g.user_id
+            "title": title,
+            "artist": artist,
+            "album": album,
+            "drive_id": final_storage_path, 
+            "duration": duration_formatted,
+            "mime_type": file.mimetype,
+            "user_id": g.user_id,
+            "is_favourite": False
         }
         
         response = supabase.table('songs').insert(song_data).execute()
+        
+        # 5. Clean up
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            print(f"Deleted temp file {temp_path}")
+            
         return jsonify(response.data)
         
     except Exception as e:
+        print(f"CRASH in add_song: {e}")
+        traceback.print_exc()
         return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
 @songs_bp.route('/<song_id>/url', methods=['GET'])

@@ -1,49 +1,28 @@
-import { Outlet, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { Home, Library, LogOut, Disc } from 'lucide-react'
+import { Outlet } from 'react-router-dom'
+import { supabase } from '../lib/supabase' // Kept for future use if needed, though logout is not in new nav yet
 import Player from './Player'
+import TopNavbar from './TopNavbar'
+import SocialStrip from './SocialStrip'
 
-export default function Layout() {
-    const handleLogout = async () => {
-        await supabase.auth.signOut()
-    }
-
+export default function Layout({ theme, toggleTheme }) {
     return (
-        <div className="flex h-screen bg-black text-white">
-            {/* Sidebar */}
-            <div className="w-64 bg-black p-6 flex flex-col border-r border-gray-800">
-                <div className="flex items-center gap-2 mb-8 text-green-500">
-                    <Disc size={32} />
-                    <h1 className="text-2xl font-bold text-white">CloudBeat</h1>
-                </div>
+        <div className="flex flex-col h-screen w-full overflow-hidden relative bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
+            {/* Background Overlay for "Concert Feel" - subtle texture or noise could be added here */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
 
-                <nav className="flex-1 space-y-4">
-                    <Link to="/library" className="flex items-center gap-3 text-gray-400 hover:text-white transition">
-                        <Library size={20} />
-                        Library
-                    </Link>
-                    {/* Add Playlist Links here later */}
-                </nav>
+            <TopNavbar theme={theme} toggleTheme={toggleTheme} />
+            <SocialStrip />
 
-                <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 text-gray-400 hover:text-white mt-auto transition"
-                >
-                    <LogOut size={20} />
-                    Logout
-                </button>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <main className="flex-1 overflow-y-auto p-8">
+            {/* Main Content Area - Scrollable */}
+            <main className="flex-1 overflow-y-auto z-10 relative scroll-smooth no-scrollbar md:custom-scrollbar">
+                <div className="max-w-7xl mx-auto w-full pb-32 pt-6"> {/* Added padding-bottom for player, padding-top for spacing */}
                     <Outlet />
-                </main>
-
-                {/* Player Bar Placeholder */}
-                <div className="fixed bottom-0 left-0 right-0 z-50">
-                    <Player />
                 </div>
+            </main>
+
+            {/* Player Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-50">
+                <Player />
             </div>
         </div>
     )

@@ -3,29 +3,20 @@ import { Play } from 'lucide-react'
 export default function SongRow({ song, onPlay }) {
     return (
         <div
-            className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 items-center p-3 rounded-md hover:bg-white/10 group transition cursor-pointer"
+            className="grid grid-cols-[50%_35%_1fr] gap-4 items-center px-6 py-3 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700/50 group transition duration-300 cursor-pointer"
             onClick={() => onPlay(song)}
         >
-            <div className="w-8 flex justify-center text-gray-400 group-hover:text-white">
-                <Play size={16} className="hidden group-hover:block" />
-                <span className="block group-hover:hidden text-sm">{song.track_number || '#'}</span>
-            </div>
-
             <div className="flex flex-col">
-                <span className="font-medium text-white">{song.title}</span>
-                <span className="text-sm text-gray-400 md:hidden">{song.artist}</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100 truncate pr-4 transition-colors duration-300">{song.title}</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400 md:hidden truncate">{song.artist}</span>
             </div>
 
-            <span className="text-gray-400 hidden md:block text-sm hover:text-white hover:underline cursor-pointer">
+            <span className="text-slate-500 dark:text-slate-400 hidden md:block text-sm hover:text-slate-800 dark:hover:text-slate-100 hover:underline cursor-pointer truncate pr-4 transition-colors duration-300">
                 {song.artist}
             </span>
 
-            <span className="text-gray-400 hidden md:block text-sm">
-                {song.album}
-            </span>
-
-            <span className="text-gray-400 text-sm">
-                {song.duration ? `${Math.floor(song.duration / 60)}:${Math.floor(song.duration % 60).toString().padStart(2, '0')}` : '--:--'}
+            <span className="text-slate-500 dark:text-slate-400 text-sm text-right font-mono transition-colors duration-300">
+                {song.duration || '--:--'}
             </span>
         </div>
     )

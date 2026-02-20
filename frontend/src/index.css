@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+
+    html,
+    body {
+        @apply h-full overflow-hidden;
+    }
+
+    body {
+        @apply bg-black text-white font-sans;
+        background: radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.6) 0%, transparent 40%),
+            radial-gradient(circle at 90% 80%, rgba(126, 34, 206, 0.5) 0%, transparent 40%),
+            linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #172554 100%);
+        background-size: cover;
+        background-attachment: fixed;
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-white/20;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400 dark:bg-white/40;
+}

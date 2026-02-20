@@ -3,14 +3,18 @@ import axios from 'axios'
 import { Plus } from 'lucide-react'
 import SongRow from '../components/SongRow'
 import UploadModal from '../components/UploadModal'
+import HeroSection from '../components/HeroSection'
 import { usePlayerStore } from '../lib/store'
+import { useSearchParams } from 'react-router-dom'
 
 export default function Library({ session }) {
     const [songs, setSongs] = useState([])
     const [loading, setLoading] = useState(true)
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+    const [searchParams] = useSearchParams()
 
-    const { setPlaylist, playSong } = usePlayerStore()
+    // Get Search Query from Store
+    const { setPlaylist, playSong, searchQuery } = usePlayerStore()
 
     const fetchSongs = async () => {
         try {
@@ -24,6 +28,8 @@ export default function Library({ session }) {
                 }
             })
             setSongs(response.data)
+            // We set the full playlist initially, but play action might use filtered list? 
+            // Usually we want the playlist to match what's visible.
             setPlaylist(response.data)
         } catch (error) {
             console.error("Error fetching songs:", error)
@@ -38,54 +44,104 @@ export default function Library({ session }) {
         }
     }, [session])
 
+    // Filtering Logic
+    const showFavoritesOnly = searchParams.get('filter') === 'favorites'
+
+    const filteredSongs = songs.filter(song => {
+        // 1. Filter by Favourite
+        if (showFavoritesOnly && !song.is_favourite) return false
+
+        // 2. Filter by Search
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase()
+            return (
+                song.title.toLowerCase().includes(query) ||
+                (song.artist && song.artist.toLowerCase().includes(query)) ||
+                (song.album && song.album.toLowerCase().includes(query))
+            )
+        }
+
+        return true
+    })
+
+    // Update Global Playlist when filter changes to ensure "Next" button follows the visible list
+    useEffect(() => {
+        if (filteredSongs.length > 0) {
+            setPlaylist(filteredSongs)
+        }
+    }, [JSON.stringify(filteredSongs), setPlaylist])
+    // JSON.stringify to avoid deep check issues or infinite loop, though simplistic. 
+    // Better: just depend on searchQuery/showFavoritesOnly and re-calc. 
+    // Actually, setting playlist on every render is bad. 
+    // Let's set playlist ONLY when playing a song from this filtered list.
+    // However, if I hit "Next" it uses the store's playlist. 
+    // So store playlist MUST match visible list for "Next" to make sense.
+    // But this causes a loop if `fetchSongs` sets it too.
+    // Let's remove `setPlaylist` from fetchSongs and rely on the effect? 
+    // No, initial load needs it.
+
+    // Refined approach:
+    // When user clicks Play on a filtered song, we might want to sets the playlist to `filteredSongs` text.
+    // But for now, let's keep it simple: The `onPlay` handler will set the playlist to `filteredSongs`.
+
     const handlePlay = (song) => {
+        // Update playlist to match current view so "Next" works as expected
+        setPlaylist(filteredSongs)
         playSong(song)
     }
 
     return (
-        <div className="relative">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-white">Your Library</h2>
-                <button
-                    onClick={() => setIsUploadModalOpen(true)}
-                    className="bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded-full flex items-center gap-2 transition transform hover:scale-105"
-                >
-                    <Plus size={20} />
-                    Add Song
-                </button>
-            </div>
+        <div className="relative min-h-screen">
+            <HeroSection songs={filteredSongs} onPlay={handlePlay} />
 
-            <div className="bg-gradient-to-b from-gray-900/50 to-black/50 p-6 rounded-lg min-h-[500px]">
-                {loading ? (
-                    <div className="text-gray-400 text-center py-10">Loading library...</div>
-                ) : songs.length === 0 ? (
-                    <div className="text-center py-20">
-                        <p className="text-gray-400 text-xl mb-4">No songs found.</p>
-                        <p className="text-gray-500">Upload your favorite tracks to get started!</p>
-                    </div>
-                ) : (
-                    <div className="flex flex-col">
-                        <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 px-3 pb-2 text-gray-400 border-b border-gray-800 mb-4 text-sm uppercase tracking-wider">
-                            <span className="w-8 text-center">#</span>
-                            <span>Title</span>
-                            <span className="hidden md:block">Artist</span>
-                            <span className="hidden md:block">Album</span>
-                            <span className="mr-8">Time</span>
+            <div className="px-8 lg:px-16 mt-4">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-wide transition-colors duration-300">
+                        {showFavoritesOnly ? 'Your Favourites' : 'Your Library'}
+                    </h2>
+                    <button
+                        onClick={() => setIsUploadModalOpen(true)}
+                        className="bg-transparent border border-gray-300 dark:border-gray-600 hover:border-gray-900 dark:hover:border-white text-gray-900 dark:text-white rounded-full px-6 py-2 flex items-center gap-2 transition text-sm font-medium"
+                    >
+                        <Plus size={16} />
+                        Add Song
+                    </button>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl min-h-[400px] border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none transition-colors duration-300">
+                    {loading ? (
+                        <div className="text-gray-400 text-center py-10">Loading library...</div>
+                    ) : filteredSongs.length === 0 ? (
+                        <div className="text-center py-20">
+                            <p className="text-gray-400 text-xl mb-4">No songs found.</p>
+                            {showFavoritesOnly ? (
+                                <p className="text-gray-500">Mark songs with the heart icon to see them here.</p>
+                            ) : (
+                                <p className="text-gray-500">Upload your favorite tracks to get started!</p>
+                            )}
                         </div>
-                        {songs.map(song => (
-                            <SongRow key={song.id} song={song} onPlay={handlePlay} />
-                        ))}
-                    </div>
+                    ) : (
+                        <div className="flex flex-col">
+                            <div className="grid grid-cols-[50%_35%_1fr] gap-4 px-6 pb-2 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 mb-4 text-xs uppercase tracking-wider font-semibold transition-colors duration-300">
+                                <span>Title</span>
+                                <span className="hidden md:block">Artist</span>
+                                <span className="text-right">Time</span>
+                            </div>
+                            {filteredSongs.map((song, i) => (
+                                <SongRow key={song.id} song={song} index={i} onPlay={handlePlay} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {isUploadModalOpen && (
+                    <UploadModal
+                        isOpen={isUploadModalOpen}
+                        onClose={() => setIsUploadModalOpen(false)}
+                        onUploadSuccess={fetchSongs}
+                    />
                 )}
             </div>
-
-            {isUploadModalOpen && (
-                <UploadModal
-                    isOpen={isUploadModalOpen}
-                    onClose={() => setIsUploadModalOpen(false)}
-                    onUploadSuccess={fetchSongs}
-                />
-            )}
         </div>
     )
 }
