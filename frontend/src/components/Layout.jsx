@@ -3,19 +3,25 @@ import { supabase } from '../lib/supabase' // Kept for future use if needed, tho
 import Player from './Player'
 import TopNavbar from './TopNavbar'
 import SocialStrip from './SocialStrip'
+import Spline from '@splinetool/react-spline'
 
 export default function Layout({ theme, toggleTheme, user }) {
     return (
         <div className="flex flex-col h-screen w-full overflow-hidden relative bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-300 transition-colors duration-300">
+            {/* 3D Spline Background */}
+            <div className={`fixed inset-0 w-full h-full z-0 pointer-events-none transition-all duration-700 ${theme === 'dark' ? 'filter-none' : 'invert hue-rotate-180'}`}>
+                <Spline scene="https://prod.spline.design/xX9fLGe93i989Kox/scene.splinecode" />
+            </div>
+
             {/* Background Overlay for "Concert Feel" - subtle texture or noise could be added here */}
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
 
             <TopNavbar theme={theme} toggleTheme={toggleTheme} user={user} />
             <SocialStrip />
 
-            {/* Main Content Area - Scrollable */}
-            <main className="flex-1 overflow-y-auto z-10 relative scroll-smooth no-scrollbar md:custom-scrollbar">
-                <div className="max-w-7xl mx-auto w-full pb-32 pt-6"> {/* Added padding-bottom for player, padding-top for spacing */}
+            {/* Main Content Area - Static */}
+            <main className="flex-1 overflow-hidden flex flex-col z-10 relative">
+                <div className="max-w-7xl mx-auto w-full h-full pb-32 pt-6">
                     <Outlet />
                 </div>
             </main>

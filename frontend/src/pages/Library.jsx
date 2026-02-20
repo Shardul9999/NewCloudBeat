@@ -91,7 +91,7 @@ export default function Library({ session, songs = [], isAdmin, onToggleFavorite
                     )}
                 </div>
 
-                <div className="bg-white dark:bg-neutral-900/50 backdrop-blur-sm p-6 rounded-2xl min-h-[400px] border border-slate-200 dark:border-neutral-800/50 shadow-sm dark:shadow-none transition-colors duration-300">
+                <div className="bg-white dark:bg-neutral-900/50 backdrop-blur-sm p-6 rounded-2xl min-h-[400px] max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar border border-slate-200 dark:border-neutral-800/50 shadow-sm dark:shadow-none transition-colors duration-300">
                     {loading ? (
                         <div className="text-gray-400 dark:text-neutral-500 text-center py-10">Loading library...</div>
                     ) : filteredSongs.length === 0 ? (

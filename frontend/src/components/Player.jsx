@@ -131,13 +131,13 @@ export default function Player() {
     const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
     if (!currentSong) return (
-        <div className="h-32 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-t border-slate-200 dark:border-neutral-800/50 p-4 flex items-center justify-center text-slate-500 dark:text-neutral-400 transition-colors duration-300">
+        <div className="h-32 bg-white/40 dark:bg-black/60 backdrop-blur-xl border-t border-slate-200/50 dark:border-white/10 p-4 flex items-center justify-center text-slate-500 dark:text-neutral-400 transition-colors duration-300">
             Select a song to play
         </div>
     )
 
     return (
-        <div className="h-32 bg-white dark:bg-neutral-950/90 backdrop-blur-md border-t border-slate-200 dark:border-neutral-800/50 px-4 md:px-8 flex items-center justify-between z-50 relative shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-2xl transition-colors duration-300">
+        <div className="h-32 bg-white/40 dark:bg-black/10 backdrop-blur-xl border-t border-slate-200/50 dark:border-white/10 px-4 md:px-8 flex items-center justify-between z-50 relative shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.5)] transition-colors duration-300">
 
             {/* Left: Controls */}
             <div className="flex items-center gap-4 lg:gap-6 w-1/4 min-w-[200px]">
