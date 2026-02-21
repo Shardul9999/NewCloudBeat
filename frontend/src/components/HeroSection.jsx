@@ -2,15 +2,23 @@ import { Play, Pause, ArrowRight, ArrowLeft } from 'lucide-react'
 import { usePlayerStore } from '../lib/store'
 
 export default function HeroSection({ songs = [], onPlay, carouselRef, onScrollLeft, onScrollRight }) {
-    const { isPlaying, currentSong, togglePlay } = usePlayerStore()
+    const { isPlaying, currentSong, togglePlay, searchQuery } = usePlayerStore()
 
     // Determine the "featured" song for the big hero display
     // If a song is playing, show that. 
     // If not, show the first song in the current filtered list.
     const featuredSong = currentSong || (songs.length > 0 ? songs[0] : null)
 
-    // For the carousel, show songs from the list.
-    const carouselSongs = songs
+    // For the carousel, show songs from the list. Sort by searchQuery if present.
+    const carouselSongs = [...songs].sort((a, b) => {
+        if (!searchQuery) return 0
+        const query = searchQuery.toLowerCase()
+        const aMatch = a.title?.toLowerCase().includes(query) || a.artist?.toLowerCase().includes(query)
+        const bMatch = b.title?.toLowerCase().includes(query) || b.artist?.toLowerCase().includes(query)
+        if (aMatch && !bMatch) return -1
+        if (!aMatch && bMatch) return 1
+        return 0
+    })
 
     const handleHeroPlay = () => {
         if (currentSong && isPlaying) {
@@ -28,20 +36,20 @@ export default function HeroSection({ songs = [], onPlay, carouselRef, onScrollL
 
     if (!featuredSong) {
         return (
-            <div className="flex flex-col items-center justify-center px-8 lg:px-16 py-24 text-slate-900 dark:text-neutral-300 transition-colors duration-300">
-                <h1 className="text-4xl font-bold mb-4 dark:text-amber-400">Your Library is Empty</h1>
-                <p className="text-slate-500 dark:text-neutral-400">Upload songs to get started.</p>
+            <div className="flex flex-col items-center justify-center px-4 md:px-8 lg:px-16 py-24 text-slate-900 dark:text-neutral-300 transition-colors duration-300">
+                <h1 className="text-3xl md:text-4xl font-bold mb-4 dark:text-amber-400">Your Library is Empty</h1>
+                <p className="text-slate-500 dark:text-neutral-400 text-sm md:text-base">Upload songs to get started.</p>
             </div>
         )
     }
 
     return (
-        <div className="flex flex-col lg:flex-row items-end justify-between px-8 lg:px-16 py-12 gap-12 text-slate-900 dark:text-neutral-300 transition-colors duration-300">
+        <div className="flex flex-col lg:flex-row items-end justify-between px-4 md:px-8 lg:px-16 py-8 md:py-12 gap-8 md:gap-12 text-slate-900 dark:text-neutral-300 transition-colors duration-300">
 
             {/* Left Side: Title and Big Play Button */}
-            <div className="flex-1 space-y-8 z-10">
+            <div className="flex-1 w-full space-y-6 md:space-y-8 z-10">
                 <div className="space-y-2">
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight line-clamp-2 max-w-4xl dark:text-amber-400">
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight line-clamp-2 max-w-4xl dark:text-amber-400">
                         {featuredSong.title}
                     </h1>
                     <div className="flex items-center gap-4 text-slate-500 dark:text-neutral-300">
@@ -65,21 +73,21 @@ export default function HeroSection({ songs = [], onPlay, carouselRef, onScrollL
             </div>
 
             {/* Right Side: Next Carousel */}
-            <div className="w-full lg:w-1/2 flex flex-col items-end z-10">
-                <div className="flex items-center justify-between w-full mb-6">
-                    <span className="text-xl font-light dark:text-amber-400">Up Next</span>
+            <div className="w-full lg:w-1/2 flex flex-col items-start lg:items-end z-10 mt-8 lg:mt-0">
+                <div className="flex items-center justify-between w-full mb-4 md:mb-6">
+                    <span className="text-lg md:text-xl font-light dark:text-amber-400">Up Next</span>
                     <div className="flex items-center gap-4 text-cyan-600 dark:text-amber-400">
                         <button onClick={onScrollLeft} className="hover:text-slate-900 dark:hover:text-amber-300 transition"><ArrowLeft size={20} /></button>
                         <button onClick={onScrollRight} className="hover:text-slate-900 dark:hover:text-amber-300 transition"><ArrowRight size={20} /></button>
                     </div>
                 </div>
 
-                <div ref={carouselRef} className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide w-full mask-image-gradient">
+                <div ref={carouselRef} className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide w-full mask-image-gradient relative">
                     {carouselSongs.map((song, index) => (
                         <div
                             key={song.id}
                             onClick={() => onPlay(song)}
-                            className={`flex-shrink-0 relative group cursor-pointer transition-all duration-300 ${index === 0 ? 'w-48' : 'w-40 opacity-70 hover:opacity-100'}`}
+                            className={`flex-shrink-0 relative group cursor-pointer transition-all duration-500 ease-in-out ${index === 0 ? 'w-48' : 'w-40 opacity-70 hover:opacity-100'}`}
                         >
                             <div className="aspect-square bg-gray-800 dark:bg-neutral-900 rounded-lg overflow-hidden mb-3 shadow-lg relative">
                                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 to-purple-900 dark:from-amber-900/50 dark:to-neutral-900/80"></div>

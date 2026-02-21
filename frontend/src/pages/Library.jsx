@@ -73,10 +73,10 @@ export default function Library({ session, songs = [], isAdmin, onToggleFavorite
     }
 
     return (
-        <div className="relative min-h-screen">
+        <div className="relative flex-1 flex flex-col overflow-hidden w-full h-full">
 
-            <div className="px-8 lg:px-16 mt-4">
-                <div className="flex justify-between items-center mb-6">
+            <div className="px-8 lg:px-16 mt-4 flex-1 flex flex-col min-h-0">
+                <div className="flex justify-between items-center mb-6 shrink-0">
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-amber-400 tracking-wide transition-colors duration-300">
                         {showFavoritesOnly ? 'Your Favourites' : 'Your Library'}
                     </h2>
@@ -91,7 +91,7 @@ export default function Library({ session, songs = [], isAdmin, onToggleFavorite
                     )}
                 </div>
 
-                <div className="bg-white dark:bg-neutral-900/50 backdrop-blur-sm p-6 rounded-2xl min-h-[400px] max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar border border-slate-200 dark:border-neutral-800/50 shadow-sm dark:shadow-none transition-colors duration-300">
+                <div className="bg-white dark:bg-neutral-900/50 backdrop-blur-sm p-6 rounded-2xl h-[calc(100vh-theme(spacing.20)-theme(spacing.32))] overflow-y-auto custom-scrollbar border border-slate-200 dark:border-neutral-800/50 shadow-sm dark:shadow-none transition-colors duration-300">
                     {loading ? (
                         <div className="text-gray-400 dark:text-neutral-500 text-center py-10">Loading library...</div>
                     ) : filteredSongs.length === 0 ? (

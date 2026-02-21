@@ -21,7 +21,7 @@ export default function Layout({ theme, toggleTheme, user }) {
 
             {/* Main Content Area - Static */}
             <main className="flex-1 overflow-hidden flex flex-col z-10 relative">
-                <div className="max-w-7xl mx-auto w-full h-full pb-32 pt-6">
+                <div className="max-w-7xl mx-auto w-full h-full pb-32 pt-6 px-4 md:px-12">
                     <Outlet />
                 </div>
             </main>

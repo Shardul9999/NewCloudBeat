@@ -7,7 +7,7 @@ export default function TopNavbar({ theme, toggleTheme, user }) {
     const { searchQuery, setSearchQuery } = usePlayerStore()
 
     return (
-        <div className="flex items-center justify-between px-8 py-6 w-full z-50 relative">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4 md:py-6 w-full z-50 relative">
             {/* Left: Logo */}
             <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full border-2 border-slate-900 dark:border-white flex items-center justify-center bg-transparent dark:bg-transparent">
@@ -43,7 +43,7 @@ export default function TopNavbar({ theme, toggleTheme, user }) {
                         placeholder="Search..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white text-sm rounded-full pl-6 pr-12 py-2 placeholder-slate-400 dark:placeholder-gray-400 focus:outline-none focus:bg-white/50 dark:focus:bg-white/20 transition-all w-48 focus:w-64 border border-slate-200 dark:border-transparent focus:border-slate-300 dark:focus:border-white/10"
+                        className="bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white text-sm rounded-full pl-6 pr-10 md:pr-12 py-2 placeholder-slate-400 dark:placeholder-gray-400 focus:outline-none focus:bg-white/50 dark:focus:bg-white/20 transition-all w-28 md:w-48 focus:w-40 md:focus:w-64 border border-slate-200 dark:border-transparent focus:border-slate-300 dark:focus:border-white/10"
                     />
                     <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-400" size={16} />
                 </div>

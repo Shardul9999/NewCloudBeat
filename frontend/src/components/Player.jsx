@@ -137,10 +137,38 @@ export default function Player() {
     )
 
     return (
-        <div className="h-32 bg-white/40 dark:bg-black/10 backdrop-blur-xl border-t border-slate-200/50 dark:border-white/10 px-4 md:px-8 flex items-center justify-between z-50 relative shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.5)] transition-colors duration-300">
+        <div className="h-20 md:h-32 bg-white/40 dark:bg-black/10 backdrop-blur-xl border-t border-slate-200/50 dark:border-white/10 px-4 md:px-8 flex items-center justify-between z-50 relative shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_25px_-5px_rgba(0,0,0,0.5)] transition-colors duration-300">
 
-            {/* Left: Controls */}
-            <div className="flex items-center gap-4 lg:gap-6 w-1/4 min-w-[200px]">
+            {/* Mobile View */}
+            <div className="flex md:hidden items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-slate-200 dark:bg-neutral-900 overflow-hidden relative shadow-md">
+                        <img
+                            src={`https://i.pravatar.cc/150?u=${currentSong.title}`}
+                            alt="Album Art"
+                            className="w-full h-full object-cover opacity-80"
+                        />
+                    </div>
+                    <div className="flex flex-col overflow-hidden text-left">
+                        <span className="text-slate-900 dark:text-amber-400 font-bold text-sm truncate max-w-[120px]">{currentSong.title}</span>
+                        <span className="text-slate-600 dark:text-neutral-400 text-xs truncate max-w-[120px]">{currentSong.artist}</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <button onClick={handleToggleFavourite} className="hover:scale-110 transition flex-shrink-0">
+                        <Heart size={20} className={`${favoriteIds.includes(currentSong.id) ? 'fill-pink-500 text-pink-500' : 'text-slate-400 hover:text-slate-900 dark:hover:text-amber-400'}`} />
+                    </button>
+                    <button
+                        onClick={togglePlay}
+                        className="w-10 h-10 rounded-full bg-slate-100 dark:bg-amber-400 border border-slate-300 dark:border-transparent flex items-center justify-center hover:scale-105 transition text-slate-900 dark:text-neutral-950 shadow-md"
+                    >
+                        {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Desktop Left: Controls */}
+            <div className="hidden md:flex items-center gap-4 lg:gap-6 w-1/4 min-w-[200px]">
                 <button
                     onClick={toggleShuffle}
                     className={`transition ${isShuffle ? 'text-cyan-600 dark:text-amber-400' : 'text-slate-400 dark:text-neutral-500 hover:text-slate-900 dark:hover:text-amber-400'}`}
@@ -177,8 +205,8 @@ export default function Player() {
                 </button>
             </div>
 
-            {/* Center: Waveform / Progress */}
-            <div className="flex flex-col items-center w-2/4 px-4 relative group justify-center gap-1">
+            {/* Desktop Center: Waveform / Progress */}
+            <div className="hidden md:flex flex-col items-center w-2/4 px-4 relative group justify-center gap-1">
                 <div className="w-full flex items-end justify-between h-20 gap-[2.5px] cursor-pointer relative"
                     onClick={(e) => {
                         const bounds = e.currentTarget.getBoundingClientRect();
@@ -215,8 +243,8 @@ export default function Player() {
                 </div>
             </div>
 
-            {/* Right: Song Info & Volume */}
-            <div className="flex items-center justify-end gap-6 w-1/4 min-w-[250px]">
+            {/* Desktop Right: Song Info & Volume */}
+            <div className="hidden md:flex items-center justify-end gap-6 w-1/4 min-w-[250px]">
                 <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-lg bg-slate-200 dark:bg-neutral-900 overflow-hidden relative shadow-md flex-shrink-0">
                         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 to-purple-900 opacity-50 dark:from-amber-900 dark:to-neutral-900 dark:opacity-40"></div>

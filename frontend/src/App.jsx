@@ -162,8 +162,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <Router>
-      <AppRoutes />
-    </Router>
+    <div className="h-screen flex flex-col overflow-hidden">
+      <Router>
+        <AppRoutes />
+      </Router>
+    </div>
   )
 }
