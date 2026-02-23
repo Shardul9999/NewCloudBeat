@@ -2,6 +2,7 @@ import { Search, Sun, Moon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { usePlayerStore } from '../lib/store'
 import { supabase } from '../lib/supabase'
+import cloudbeatLogo from '../assets/cloudbeat-logo.png'
 
 export default function TopNavbar({ theme, toggleTheme, user }) {
     const { searchQuery, setSearchQuery } = usePlayerStore()
@@ -10,9 +11,7 @@ export default function TopNavbar({ theme, toggleTheme, user }) {
         <div className="flex items-center justify-between px-4 md:px-8 py-4 md:py-6 w-full z-50 relative">
             {/* Left: Logo */}
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full border-2 border-slate-900 dark:border-white flex items-center justify-center bg-transparent dark:bg-transparent">
-                    <div className="w-2 h-2 bg-slate-900 dark:bg-white rounded-full"></div>
-                </div>
+                <img src={cloudbeatLogo} alt="CloudBeat Logo" className="h-12 w-12 rounded-xl object-cover" />
                 <span className="text-slate-900 dark:text-white font-bold text-xl tracking-wider transition-colors">CloudBeat</span>
             </div>
 
